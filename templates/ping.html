@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PING Test - Network Connectivity Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .nav-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #5568d3;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #667eea;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .ping-results {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .ping-result {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            background: white;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .ping-result.success {
+            border-left-color: #28a745;
+        }
+
+        .ping-result.failed {
+            border-left-color: #dc3545;
+        }
+
+        .ping-result .time {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .ping-result .message {
+            color: #333;
+            margin-top: 5px;
+        }
+
+        .ping-result .response-time {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #17a2b8;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <a href="/" class="nav-link">← Back to IP Information</a>
+            <h1>PING Test</h1>
+            <p class="subtitle">Test connectivity to any IP address or domain</p>
+
+            <div class="input-group">
+                <label for="target">Target IP Address or Domain</label>
+                <input type="text" id="target" placeholder="e.g., 8.8.8.8 or google.com">
+            </div>
+
+            <button class="btn" id="pingBtn" onclick="startPing()">Start Ping Test</button>
+
+            <div class="info-box">
+                <strong>Note:</strong> This performs a TCP connectivity test (not ICMP ping). It attempts to connect to common ports (80, 443) to verify network connectivity.
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Testing connectivity...</p>
+            </div>
+
+            <div id="results" class="results">
+                <h2 style="margin-bottom: 20px; color: #333;">Test Results</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Min</div>
+                        <div class="stat-value" id="minTime">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Avg</div>
+                        <div class="stat-value" id="avgTime">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Max</div>
+                        <div class="stat-value" id="maxTime">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Packet Loss</div>
+                        <div class="stat-value" id="packetLoss">-</div>
+                    </div>
+                </div>
+
+                <div class="ping-results" id="pingResults"></div>
+            </div>
+
+            <div id="error" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        async function startPing() {
+            const target = document.getElementById('target').value.trim();
+
+            if (!target) {
+                alert('Please enter a target IP address or domain');
+                return;
+            }
+
+            // Reset UI
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('pingBtn').disabled = true;
+            document.getElementById('pingResults').innerHTML = '';
+
+            try {
+                const response = await fetch('/api/ping', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ target: target })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'An error occurred during the ping test');
+                }
+            } catch (error) {
+                showError('Failed to perform ping test: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('pingBtn').disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            // Show results section
+            document.getElementById('results').classList.add('show');
+
+            // Update statistics
+            document.getElementById('minTime').textContent = data.stats.min.toFixed(2) + ' ms';
+            document.getElementById('avgTime').textContent = data.stats.avg.toFixed(2) + ' ms';
+            document.getElementById('maxTime').textContent = data.stats.max.toFixed(2) + ' ms';
+            document.getElementById('packetLoss').textContent = data.stats.packet_loss.toFixed(0) + '%';
+
+            // Display individual ping results
+            const resultsContainer = document.getElementById('pingResults');
+            data.results.forEach((result, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `ping-result ${result.success ? 'success' : 'failed'}`;
+
+                const timeSpan = document.createElement('div');
+                timeSpan.className = 'time';
+                timeSpan.textContent = `[${result.timestamp}] Attempt ${index + 1}/5`;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+
+                if (result.success) {
+                    messageDiv.innerHTML = `${result.message} - <span class="response-time">${result.response_time} ms</span>`;
+                } else {
+                    messageDiv.textContent = result.message;
+                    messageDiv.style.color = '#dc3545';
+                }
+
+                resultDiv.appendChild(timeSpan);
+                resultDiv.appendChild(messageDiv);
+                resultsContainer.appendChild(resultDiv);
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Allow Enter key to start ping
+        document.getElementById('target').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                startPing();
+            }
+        });
+    </script>
+</body>
+</html>
